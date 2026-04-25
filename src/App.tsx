@@ -4,13 +4,14 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, Search } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { tutorialSections } from './data/tutorial';
 
 export default function App() {
   const [activeSection, setActiveSection] = useState(tutorialSections[0].id);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -34,6 +35,10 @@ export default function App() {
 
     return () => observer.disconnect();
   }, []);
+
+  const filteredSections = tutorialSections.filter(section =>
+    section.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900 overflow-x-hidden">
@@ -59,10 +64,18 @@ export default function App() {
             <span className="text-slate-900 font-medium">LaTeX</span>
           </div>
           <div className="flex items-center gap-4">
-            <button className="text-slate-400 hover:text-slate-600">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            </button>
-            <div className="w-8 h-8 rounded-full bg-slate-200 border border-slate-300"></div>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 group-focus-within:text-indigo-500">
+                <Search size={16} />
+              </div>
+              <input 
+                type="text" 
+                placeholder="Search tutorials..." 
+                className="w-40 sm:w-64 pl-9 pr-4 py-2 bg-slate-100 border border-transparent rounded-lg text-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 outline-none transition-all placeholder:text-slate-400"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
           </div>
         </header>
 
@@ -80,19 +93,25 @@ export default function App() {
           </header>
 
           <div className="space-y-20">
-            {tutorialSections.map((section) => (
-              <section key={section.id} id={section.id} className="scroll-mt-24">
-                <div className="flex justify-between items-start mb-6">
-                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-3">
-                    <span className="text-indigo-600 bg-indigo-50/50 p-2 rounded-lg border border-indigo-100">
-                      {section.icon}
-                    </span>
-                    {section.title}
-                  </h2>
-                </div>
-                {section.content}
-              </section>
-            ))}
+            {filteredSections.length > 0 ? (
+              filteredSections.map((section) => (
+                <section key={section.id} id={section.id} className="scroll-mt-24">
+                  <div className="flex justify-between items-start mb-6">
+                    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-3">
+                      <span className="text-indigo-600 bg-indigo-50/50 p-2 rounded-lg border border-indigo-100">
+                        {section.icon}
+                      </span>
+                      {section.title}
+                    </h2>
+                  </div>
+                  {section.content}
+                </section>
+              ))
+            ) : (
+              <div className="text-center py-20 text-slate-500">
+                <p className="text-lg">No sections found matching "{searchQuery}"</p>
+              </div>
+            )}
           </div>
 
           {/* Footer Control Bar */}
